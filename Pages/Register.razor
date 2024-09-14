@@ -1,0 +1,38 @@
+@page "/register"
+@inject HttpClient Http
+@code {
+    private UserRegisterDto _userRegister = new UserRegisterDto();
+    private string? _message;
+
+    private async Task RegisterUser()
+    {
+        var response = await Http.PostAsJsonAsync("/api/auth/register", _userRegister);
+
+        if (response.IsSuccessStatusCode)
+        {
+            _message = "Registration successful!";
+        }
+        else
+        {
+            _message = "Registration failed. Username may already exist.";
+        }
+    }
+}
+
+<h3>Register</h3>
+<div>
+    <input placeholder="Username" @bind="_userRegister.Username" /><br />
+    <input placeholder="Email" @bind="_userRegister.Email" /><br />
+    <input type="password" placeholder="Password" @bind="_userRegister.Password" /><br />
+    <button @onclick="RegisterUser">Register</button>
+    <p>@_message</p>
+</div>
+
+@code {
+    public class UserRegisterDto
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

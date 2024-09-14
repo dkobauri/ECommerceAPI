@@ -1,0 +1,51 @@
+@page "/login"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@code {
+    private UserLoginDto _userLogin = new UserLoginDto();
+    private string? _message;
+
+    private async Task LoginUser()
+    {
+        var response = await Http.PostAsJsonAsync("/api/auth/login", _userLogin);
+        
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
+            if (result != null)
+            {
+                // Store JWT token in local storage (or cookie)
+                await localStorage.SetItemAsync("authToken", result.Token);
+                Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", result.Token);
+                _message = "Login successful!";
+                Navigation.NavigateTo("/");
+            }
+        }
+        else
+        {
+            _message = "Login failed. Invalid credentials.";
+        }
+    }
+}
+
+<h3>Login</h3>
+<div>
+    <input placeholder="Username" @bind="_userLogin.Username" /><br />
+    <input type="password" placeholder="Password" @bind="_userLogin.Password" /><br />
+    <button @onclick="LoginUser">Login</button>
+    <p>@_message</p>
+</div>
+
+@code {
+    public class UserLoginDto
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+
+    public class AuthResponse
+    {
+        public string Token { get; set; } = string.Empty;
+    }
+}
